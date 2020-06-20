@@ -1,0 +1,65 @@
+racher
+
+Racher (Server)
+ Consist of auth proxy, Rachner API server, (downstream) clsuter controller & etcd.
+ for prodution its reccomended to intsall rancher in RKE cluster.
+
+ The authentication proxy forwards all Kubernetes API calls to downstream clusters. It integrates with authentication services like local authentication, Active Directory, and GitHub. On every Kubernetes API call, the authentication proxy authenticates the caller and sets the proper Kubernetes impersonation headers before forwarding the call to Kubernetes masters.
+
+ Cluster agent (or node agent in case of cluster agents goes down) Communicates between the cluster and Rancher server (through a tunnel to the cluster controller) about events, stats, node info, and health.
+
+ If the cluster agent (also called cattle-cluster-agent) is not available, one of the node agents creates a tunnel to the cluster controller to communicate with Rancher.
+ The cattle-node-agent is deployed using a DaemonSet resource to make sure it runs on every node in a Rancher-launched Kubernetes cluster
+
+ An authorized cluster endpoint allows users to connect to the Kubernetes API server of a downstream cluster without having to route their requests through the Rancher authentication proxy. Endpoint is available with rancher RKE clusters only. not with imported cluster or hosted cluster.
+
+RKE
+ Its both K8 upstream distribution and installer.
+ Important files to backup after RKE setup - cluster.rkestate & kube_config_cluster.yml. 1st contains certificate and credential information for accessing the cluster.
+
+ Backups
+  RKE defaults to making a snapshot every six hours and holding snapshots for one day.
+  "rke etcd snapshot-save" will save snaps to /opt/rke/etcd-snapshots (mount NFS volume to move data offhost or you can config backup to S3)
+
+
+
+
+
+-- Manual etcd backup in RKE
+makrand@mint-gl63:~/vagrant_ssd/ubuntu18$ rke etcd snapshot-save
+INFO[0000] Running RKE version: v1.1.0                  
+WARN[0000] Name of the snapshot is not specified using [rke_etcd_snapshot_2020-06-09T12:56:15+05:30] 
+INFO[0000] Starting saving snapshot on etcd hosts       
+INFO[0000] [dialer] Setup tunnel for host [10.0.0.11]   
+INFO[0000] [etcd] Running snapshot save once on host [10.0.0.11] 
+INFO[0000] Image [rancher/rke-tools:v0.1.56] exists on host [10.0.0.11] 
+INFO[0001] Starting container [etcd-snapshot-once] on host [10.0.0.11], try #1 
+INFO[0001] [etcd] Successfully started [etcd-snapshot-once] container on host [10.0.0.11] 
+INFO[0001] Waiting for [etcd-snapshot-once] container to exit on host [10.0.0.11] 
+INFO[0001] Container [etcd-snapshot-once] is still running on host [10.0.0.11] 
+INFO[0002] Waiting for [etcd-snapshot-once] container to exit on host [10.0.0.11] 
+INFO[0002] Removing container [etcd-snapshot-once] on host [10.0.0.11], try #1 
+INFO[0002] Finished saving/uploading snapshot [rke_etcd_snapshot_2020-06-09T12:56:15+05:30] on all etcd hosts 
+
+vagrant@rke-host:/opt/rke/etcd-snapshots$ ls -l
+
+-rw------- 1 root root 300688 Jun  9 07:26 rke_etcd_snapshot_2020-06-09T12:56:15+05:30.zip
+
+
+
+
+
+
+
+#> Error for RKE setup on LXD container
+INFO[0224] [worker] Building up Worker Plane..          
+INFO[0224] Checking if container [service-sidekick] is running on host [10.70.241.252], try #1 
+INFO[0224] [sidekick] Sidekick container already created on host [10.70.241.252] 
+INFO[0224] Image [rancher/hyperkube:v1.16.8-rancher1] exists on host [10.70.241.252] 
+INFO[0224] Starting container [kubelet] on host [10.70.241.252], try #1 
+WARN[0225] Can't start Docker container [kubelet] on host [10.70.241.252]: Error response from daemon: linux mounts: path /var/lib/rancher is mounted on / but it is not a shared mount 
+INFO[0225] Starting container [kubelet] on host [10.70.241.252], try #2 
+WARN[0225] Can't start Docker container [kubelet] on host [10.70.241.252]: Error response from daemon: linux mounts: path /var/lib/kubelet is mounted on / but it is not a shared mount 
+INFO[0225] Starting container [kubelet] on host [10.70.241.252], try #3 
+WARN[0225] Can't start Docker container [kubelet] on host [10.70.241.252]: Error response from daemon: linux mounts: path /var/lib/rancher is mounted on / but it is not a shared mount 
+FATA[0225] [workerPlane] Failed to bring up Worker Plane: [Failed to start [kubelet] container on host [10.70.241.252]: Error response from daemon: linux mounts: path /var/lib/rancher is mounted on / but it is not a shared mount]

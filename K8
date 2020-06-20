@@ -1,0 +1,147 @@
+Kubetnetes
+
+
+makrand@mint-gl63:~/lab$ cat bootstrap-kube.sh | lxc exec kmaster bash
+
+
+=> kmsg step - for K8 cluster to remain persistance on reboot
+lxc config device add kmaster "kmsg" unix-char source="/dev/kmsg" path="/dev/kmsg"  
+
+## main commands 
+kubectl get cs (component status health check)
+kubectl config view
+kubectl version --short
+kubectl cluster-info
+kubectl get nodes
+kubectl -n kube-system get all
+
+[root@kmaster /]# kubectl get all         
+NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+service/kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP   89m
+
+makrand@mint-fuji1 ~/lab $ kubectl get ns
+makrand@mint-fuji1 ~/lab $ kubectl -n kube-system get pods
+
+[root@kmaster /]# kubectl run nginx --image nginx --replicas 2
+kubectl run --generator=deployment/apps.v1 is DEPRECATED and will be removed in a future version. Use kubectl run --generator=run-pod/v1 or kubectl create instead.
+deployment.apps/nginx created
+
+kubectl run nginx --image nginx:stable-alpine --replicas 2
+
+[root@kmaster /]# kubectl expose deploy nginx --port 80 --type NodePort
+service/nginx exposed
+
+[root@kmaster /]# kubectl get svc
+NAME         TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
+kubernetes   ClusterIP   10.96.0.1      <none>        443/TCP        98m
+nginx        NodePort    10.98.237.55   <none>        80:31278/TCP   53s
+
+makrand@mint-gl63:~/lab$ kubectl delete deploy nginx
+deployment.apps "nginx" deleted
+
+makrand@mint-gl63:~/lab$ kubectl delete service nginx
+service "nginx" deleted
+--
+
+
+makrand@mint-fuji1 ~/lab $ kubectl describe pod nginx-deploy-6db489d4b7-l65m | grep -i controlled
+Controlled By:  ReplicaSet/nginx-deploy-6db489d4b7
+
+makrand@mint-fuji1 ~/lab $ kubectl describe replicaset nginx-deploy-6db489d4b7 | grep -i controlled
+Controlled By:  Deployment/nginx-deploy
+
+
+-- kubectl run cmd
+makrand@mint-fuji1 ~ $ kubectl -n dev run nginx --image=nginx:1.14 
+
+ -Expose above deployment
+microk8s.kubectl expose deploy nginx --port=80 --target-port=80 --type=ClusterIP
+
+ - Scale deployment
+makrand@mint-fuji1 ~/lab $ kubectl scale deployment nginx --replicas=3
+
+
+#> Generating yaml from existing resource
+makrand@mint-fuji1 ~/lab $ kubectl get daemonsets -n kube-system -o yaml
+makrand@mint-fuji1 ~ $ kubectl -n dev get deploy nginx -o yaml | less
+
+
+makrand@mint-fuji1 ~/lab $ kubectl label node kworker2 gpupresent=true (to remove label just use gpupresent- in end)
+node/kworker2 labeled
+
+
+#> PodNodeSelector Plugin 
+Label the nodes dev and prod & verify
+edit kube-apiserver.yaml mainests in /etc/kubernetes
+Create NS
+Edit NS and add annotations*
+check mainifests in /etc/kubernetes
+
+annotations:
+  scheduler.alpha.kubernetes.io/node-selector: "env=prod"
+
+
+^y should be used on resource created by either kubectl create --save-config or kubectl apply
+secret/secret-demo configured
+
+
+#> Rolling upgrade
+vagrant@lxc-host:~/lab/kubernetes/yamls$ kubectl rollout status deployment nginx-deploy (can track live during upgrade process)
+
+vagrant@lxc-host:~/lab/kubernetes/yamls$ kubectl rollout history deployment nginx-deploy
+
+-- see whats inside each revision in history
+vagrant@lxc-host:~/lab/kubernetes/yamls$ kubectl rollout history deployment nginx-deploy --revision 1
+vagrant@lxc-host:~/lab/kubernetes/yamls$ kubectl set image deployment nginx-deploy nginx=nginx:1.16
+vagrant@lxc-host:~/lab/kubernetes/yamls$ kubectl set image deployment nginx-deploy nginx=nginx:1.17 --record
+
+
+^_^ Dynamic NFS in k8
+http://i.imgur.com/HDj3yxB.png
+
+
+^_^ Init Containers
+
+ init container does its job and then disosed off
+ init containers help keep actual container size less. init containers starts 1st and then main container is started
+ main container will be started after init contianer is done with its purpose. e.g. mysql dump or checkout code in git
+ init containers sahres data with main container using volume.
+
+
+
+#> 
+
+
+
+^_^ Contexts and config
+ After your clusters, users, and contexts are defined in one or more configuration files, you can quickly switch between clusters by using the kubectl config use-context command.
+ A configuration file describes clusters, users, and contexts
+ Context needs to be associated with NS, user and cluster. 
+
+#> 
+makrand@mint-fuji1 ~ $ kubectl config set-context kubesys --namespace=kube-system --user=kubernetes-admin --cluster=kubernetes
+Context "kubesys" created.
+
+makrand@mint-fuji1 ~ $ kubectl config use-context kubesys
+Switched to context "kubesys".
+
+ -- Alias for config
+		alias kuc='kubectl config use-context'
+		alias kcc='kubectl config current-context'
+		alias kgc='kubectl config get-contexts'
+		alias ksc='kubectl config set-context'
+		alias kuc='kubectl config use-context'
+
+
+^_^ Metallb
+
+ it allows you to create Kubernetes services of type “LoadBalancer” in clusters that don’t run on a cloud provider (like AWS, GCP etc)
+ It has two features that work together to provide this service: 
+ -address allocation
+ -external announcement
+ In a cloud-enabled Kubernetes cluster, you request a load-balancer, and your cloud platform assigns an IP address to you. In a bare metal cluster, MetalLB is responsible for that allocation.
+ - External Announcement
+ Once MetalLB has assigned an external IP address to a service, it needs to make the network beyond the cluster aware that the IP “lives” in the cluster. MetalLB uses standard routing protocols to achieve this: ARP (L2), NDP, or BGP.
+ - In layer 2 mode, one machine in the cluster takes ownership of the service, and uses standard address discovery protocols (ARP for IPv4, NDP for IPv6) to make those IPs reachable on the local network.
+
+

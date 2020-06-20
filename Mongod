@@ -1,0 +1,121 @@
+Mongod
+
+^_^
+
+MongoDB runs using the mongod user account
+main configuration file /etc/mongod.conf
+/var/lib/mongo (the data directory)
+/var/log/mongodb (the log directory)
+
+
+#ReplicaSet
+ A replica set is a group of mongod instances that maintain the same data set
+ There can be one and only one member is deemed the primary node, while the other nodes are deemed secondary nodes.
+ The primary records all changes to its data sets in its operation log, i.e. oplog.
+  The oplog (operations log) is a special capped collection that keeps a rolling record of all operations that modify the data stored in your databases.
+  MongoDB applies database operations on the primary and then records the operations on the primary’s oplog. The secondary members then copy and apply these operations in an asynchronous process. 
+  All replica set members contain a copy of the oplog, in the local.oplog.rs collection, which allows them to maintain the current state of the database.
+  To facilitate replication, all replica set members send heartbeats (pings) to all other members. Any secondary member can import oplog entries from any other member.
+  Each operation in the oplog is idempotent. That is, oplog operations produce the same results whether applied once or multiple times to the target dataset.
+  Asynchronous replication to secondaries means that reads from secondaries may return data that does not reflect the state of the data on the primary.
+  Use the bind_ip option to ensure that MongoDB listens for connections from applications on configured addresses.
+  
+ 
+#Shrading
+ MongoDB supports horizontal scaling through sharding.
+ MongoDB shards data at the collection level, distributing the collection data across the shards in the cluster.
+ MongoDB uses the shard key to distribute the collection’s documents across shards
+ The choice of shard key cannot be changed after sharding
+ The shard key consists of a field or fields that exist in every document in the target collection.
+
+
+
+
+
+
+
+
+
+
+
+
+^^
+
+
+CMDs-
+
+[root@mongo-cent ~]# rpm -ql mongodb-org-server
+
+[root@mongo-cent ~]# mongoimport students.json 
+2020-04-30T10:00:06.570+0000	no collection specified
+2020-04-30T10:00:06.570+0000	using filename 'students' as collection
+2020-04-30T10:00:06.580+0000	connected to: mongodb://localhost/
+2020-04-30T10:00:06.635+0000	200 document(s) imported successfully. 0 document(s) failed to import.
+
+[root@mongo-cent ~]# mongoimport --db student --collection school --file students.json       
+
+!# 
+[root@mongo-cent docker-bin]# docker run hello-world
+Unable to find image 'hello-world:latest' locally
+latest: Pulling from library/hello-world
+0e03bdcc26d7: Pull complete 
+Digest: sha256:8e3114318a995a1ee497790535e7b88365222a21771ae7e53687ad76563e8e76
+Status: Downloaded newer image for hello-world:latest
+docker: Error response from daemon: OCI runtime create failed: container_linux.go:349: starting container process caused "process_linux.go:449: container init caused \"rootfs_linux.go:58: mounting \\\"proc\\\" to rootfs \\\"/var/lib/docker/overlay2/f901656421972f0e89d63dfa45600d1373ee4067df85d90c3fa2257a3fd9cf26/merged\\\" at \\\"/proc\\\" caused \\\"permission denied\\\"\"": unknown.
+
+root@mongo-ubu18:~# docker run hello-world
+docker: Error response from daemon: OCI runtime create failed: container_linux.go:349: starting container process caused "process_linux.go:449: container init caused \"rootfs_linux.go:58: mounting \\\"proc\\\" to rootfs \\\"/var/lib/docker/overlay2/805c9937196fd9a8bf3c32b90d7896e8f06f3ac33496330e2870e009a8b46021/merged\\\" at \\\"/proc\\\" caused \\\"permission denied\\\"\"": unknown.
+ERRO[0002] error waiting for container: context canceled 
+
+makrand@mint-gl63:/$ lxc version
+Client version: 3.0.3
+Server version: 3.0.3
+
+
+
+[root@mongo-cent docker-bin]# cat /etc/*release*
+CentOS Linux release 7.8.2003 (Core)
+Derived from Red Hat Enterprise Linux 7.8 (Source)
+NAME="CentOS Linux"
+VERSION="7 (Core)"
+ID="centos"
+ID_LIKE="rhel fedora"
+VERSION_ID="7"
+PRETTY_NAME="CentOS Linux 7 (Core)"
+ANSI_COLOR="0;31"
+CPE_NAME="cpe:/o:centos:centos:7"
+HOME_URL="https://www.centos.org/"
+BUG_REPORT_URL="https://bugs.centos.org/"
+
+CENTOS_MANTISBT_PROJECT="CentOS-7"
+CENTOS_MANTISBT_PROJECT_VERSION="7"
+REDHAT_SUPPORT_PRODUCT="centos"
+REDHAT_SUPPORT_PRODUCT_VERSION="7"
+
+CentOS Linux release 7.8.2003 (Core)
+CentOS Linux release 7.8.2003 (Core)
+cpe:/o:centos:centos:7
+
+
+[root@kworker2 ~]# cat /etc/*release*
+CentOS Linux release 7.7.1908 (Core)
+Derived from Red Hat Enterprise Linux 7.7 (Source)
+NAME="CentOS Linux"
+VERSION="7 (Core)"
+ID="centos"
+ID_LIKE="rhel fedora"
+VERSION_ID="7"
+PRETTY_NAME="CentOS Linux 7 (Core)"
+ANSI_COLOR="0;31"
+CPE_NAME="cpe:/o:centos:centos:7"
+HOME_URL="https://www.centos.org/"
+BUG_REPORT_URL="https://bugs.centos.org/"
+
+CENTOS_MANTISBT_PROJECT="CentOS-7"
+CENTOS_MANTISBT_PROJECT_VERSION="7"
+REDHAT_SUPPORT_PRODUCT="centos"
+REDHAT_SUPPORT_PRODUCT_VERSION="7"
+
+CentOS Linux release 7.7.1908 (Core)
+CentOS Linux release 7.7.1908 (Core)
+cpe:/o:centos:centos:7
