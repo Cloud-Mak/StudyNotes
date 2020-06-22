@@ -1,5 +1,7 @@
 Kubetnetes
 
+test to check git commit
+
 
 makrand@mint-gl63:~/lab$ cat bootstrap-kube.sh | lxc exec kmaster bash
 
@@ -143,5 +145,7 @@ Switched to context "kubesys".
  - External Announcement
  Once MetalLB has assigned an external IP address to a service, it needs to make the network beyond the cluster aware that the IP “lives” in the cluster. MetalLB uses standard routing protocols to achieve this: ARP (L2), NDP, or BGP.
  - In layer 2 mode, one machine in the cluster takes ownership of the service, and uses standard address discovery protocols (ARP for IPv4, NDP for IPv6) to make those IPs reachable on the local network.
+
+ 
 
 
