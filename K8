@@ -1,7 +1,5 @@
 Kubetnetes
 
-test to check git commit
-
 
 makrand@mint-gl63:~/lab$ cat bootstrap-kube.sh | lxc exec kmaster bash
 
