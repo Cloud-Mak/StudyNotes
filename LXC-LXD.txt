@@ -99,9 +99,9 @@ Password Less Login from host to lxd container -
  ssh-copy-id -f -i /home/makrand/.ssh/id_rsa.pub root@10.70.241.97
 
 
-Forward port from host to container
+^_^ Forward port from host to container
 
-lxc config device add <CONTAINER> <DEVNAME> proxy listen=tcp:0.0.0.0:80 connect=tcp:127.0.0.1:8080
+lxc config device add <CONTAINER> <DEVNAME> proxy listen=tcp:0.0.0.0:80 connect=tcp:127.0.0.1:80
 
 
 

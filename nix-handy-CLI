@@ -1,0 +1,8 @@
+====================
+  DeskTop Commands
+====================
+
+makrand@mint-gl63:$ xdpyinfo | awk '/dimensions/{print $all}'
+  dimensions:    1920x1080 pixels (508x285 millimeters)
+
+

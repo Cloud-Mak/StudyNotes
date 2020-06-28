@@ -1,0 +1,23 @@
+^_^ Three areas for files in GIT
+
+- Working Tree (or working directory)
+- Staging Area (index)
+- History
+
+^_^ Basics Steps -
+
+git init
+git status
+git commit -a -m "message/reason for commit" --> combination of below two
+ git add <file> or . or -all 				 --> Adds file from WT to SA
+ git commit -m "message/reason for commit"   --> Adds file from SA to history
+git log
+git dff (compare between WT & SA files)
+git diff --staged  (compare between SA and History area files)
+
+
+use "git reset HEAD <file>..." to unstage
+git checkout -- <file>..." to discard changes in WT "
+
+
+
