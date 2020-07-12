@@ -14,10 +14,21 @@ git commit -a -m "message/reason for commit" --> combination of below two
 git log
 git dff (compare between WT & SA files)
 git diff --staged  (compare between SA and History area files)
-
-
-use "git reset HEAD <file>..." to unstage
+"git reset HEAD <file>..." to unstage
 git checkout -- <file>..." to discard changes in WT "
+alias graph='git log --all --decorate --oneline --graph'
 
 
+^_^ Branches 
 
+Branches allows us to work on different versions of same file in parallel
+each branch is pointer to shaw1 hash. with each commit, branch points to commit.
+head points to branch, branch points to shaw1 hash.
+
+"git checkout BRANCH" will update WT and Index for theat branch.
+
+clean working tree (CWT) means there is nothing to commit.
+using git stash, you can save local modifications away everts the working directory to match the HEAD commit
+
+-- Remote
+git pull = git fetch + git merge (good practice to use both commands seperately)

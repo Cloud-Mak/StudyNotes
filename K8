@@ -135,14 +135,36 @@ Switched to context "kubesys".
 
 ^_^ Metallb
 
- it allows you to create Kubernetes services of type “LoadBalancer” in clusters that don’t run on a cloud provider (like AWS, GCP etc)
+ it allows you to create Kubernetes services of type “LoadBalancer” in clusters that don’t run on a cloud provider (like AWS, GCP etc).
+ The installation manifest does not include a configuration file. MetalLB’s components will still start, but will remain idle until you define and deploy a configmap.
  It has two features that work together to provide this service: 
  -address allocation
  -external announcement
  In a cloud-enabled Kubernetes cluster, you request a load-balancer, and your cloud platform assigns an IP address to you. In a bare metal cluster, MetalLB is responsible for that allocation.
+ 
  - External Announcement
- Once MetalLB has assigned an external IP address to a service, it needs to make the network beyond the cluster aware that the IP “lives” in the cluster. MetalLB uses standard routing protocols to achieve this: ARP (L2), NDP, or BGP.
+ Once MetalLB has assigned an external IP address to a service, it ipneeds to make the network beyond the cluster aware that the IP “lives” in the cluster. MetalLB uses standard routing protocols to achieve this: ARP (L2), NDP, or BGP.
  - In layer 2 mode, one machine in the cluster takes ownership of the service, and uses standard address discovery protocols (ARP for IPv4, NDP for IPv6) to make those IPs reachable on the local network.
+ - With the BGP mode the speakers establish a BGP peering with routers outside of the cluster, and tell those routers how to forward traffic to the service IPs. Using BGP allows for true load balancing across multiple nodes, and fine-grained traffic control thanks to BGP’s policy mechanisms.
+
+
+
+ #> cli examples
+ -- expose service as load balancer
+ makrand@mint-gl63:~$ kubectl expose deployment nginx11 --port 80 --type LoadBalancer
+ service/nginx11 exposed
+
+ makrand@mint-gl63:~$ kubectl get svc nginx11 
+ NAME      TYPE           CLUSTER-IP      EXTERNAL-IP    PORT(S)        AGE
+ nginx11   LoadBalancer   10.102.104.44   10.70.241.51   80:31393/TCP   3m12s
+
+ Check logs of speaker
+ kubectl logs -l component=speaker -n metallb-system --since=10m
+ {"caller":"arp.go:102","interface":"eth0","ip":"10.70.241.51","msg":"got ARP request for service IP, sending response","responseMAC":"00:16:3e:6a:72:10","senderIP":"10.70.241.1","senderMAC":"fe:42:98:e3:63:99","ts":"2020-07-09T10:59:41.81426133Z"}
+
+
+
+
 
  
 

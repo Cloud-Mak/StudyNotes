@@ -105,3 +105,26 @@ lxc config device add <CONTAINER> <DEVNAME> proxy listen=tcp:0.0.0.0:80 connect=
 
 
 
+
+
+========>> Clustering <<========
+
+The cluster uses a distributed database to store its state. All nodes in the cluster need to access such distributed database in order to serve user requests. 
+Every LXD cluster has up to 3 members that serve as database nodes
+If the cluster has many nodes, only some of them will be picked to replicate database data. Each node that is picked can replicate data either as "voter" or as "stand-by"
+The default number of voting nodes is 3 and the default number of stand-by nodes is 2. This means that your cluster will remain operation as long as you switch off at most one voting node at a time.
+At each time there will be an elected cluster leader that will monitor the health of the other nodes. If a node is down for more than 20 seconds, its status will be marked as OFFLINE.
+To upgrade a single node, simply upgrade the lxd/lxc binaries on the host (via snap or other packaging systems) and restart the lxd daemon.
+As you proceed upgrading the rest of the nodes, they will all transition to the Blocked state, until you upgrade the very last one. At that point the blocked nodes will notice that there is no out-of-date node left and will become operational again.
+If you have a 3-member cluster and you lose 2 members, the cluster will become unavailable. However, if at least one database node has survived, you will be able to recover the cluster.
+
+
+#> cluster CLI 
+ lxc config set cluster.max_voters <n>
+ lxc config set cluster.max_standby <n>
+ lxc cluster remove <node name>
+ lxc config set cluster.offline_threshold <n seconds>  (min value should be 10)
+ lxc cluster remove --force <node name>
+ lxd cluster list-database
+ lxc config set cluster.images_minimal_replica 1 (if set to -1 then image present in all)
+ 

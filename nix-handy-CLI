@@ -1,8 +1,27 @@
-====================
-  DeskTop Commands
+^_^  DeskTop Commands
 ====================
 
 makrand@mint-gl63:$ xdpyinfo | awk '/dimensions/{print $all}'
   dimensions:    1920x1080 pixels (508x285 millimeters)
+
+rdesktop -r clipboard -r disk:drive=/media/makrand/ntfs-store/ 10.100.100.101 -u makrand
+
+
+^_^ ===========MISC============
+inotifywait -m . --> shows the event occouring in curreny dictornary for a file(s) 
+systemctl daemon-reload --> Reload systemclt daemon
+
+
+^_^ ===========Text Manipulation============
+  
+grep 'word1\|word2\|word3' /path/to/file
+ps -ef | grep 'dockerd\|containerd\|runc\|shim'
+
+
+#> Sed
+sed -i.bak 's/t/T/g' text.txt
+
+
+
 
 
