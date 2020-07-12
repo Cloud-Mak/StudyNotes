@@ -1,0 +1,7 @@
+
+
+^_^ In detailed - What happens when you launch new container
+ 
+ When you type docker run, the Docker CLI, the client converts then into proper API payloads & POSTS then to corret API ENDpoint.
+ API endpoint is implemented into deamon, thus command to create container is reveived by deamon. Deamon then calls containerD (via CRUD-style API over gRPC).
+ containerD looks for image locally. If not, then pull request for image is genrated from registry (mostly dockerhub.com) 
