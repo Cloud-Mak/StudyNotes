@@ -11,17 +11,47 @@ rdesktop -r clipboard -r disk:drive=/media/makrand/ntfs-store/ 10.100.100.101 -u
 inotifywait -m . --> shows the event occouring in curreny dictornary for a file(s) 
 systemctl daemon-reload --> Reload systemclt daemon
 
+# list contents of .tar.gz file
+tar -vztf eksctl_Linux_amd64.tar.gz 
+# list contents of .tar.bz file
+tar -vbtf eksctl_Linux_amd64.tar.gz
+#extract contents of archieve
+tar -xvzf eksctl_Linux_amd64.tar.gz 
+
 
 ^_^ ===========Text Manipulation============
   
 grep 'word1\|word2\|word3' /path/to/file
 ps -ef | grep 'dockerd\|containerd\|runc\|shim'
 
+# just get IP address from the 1 ping packet output.txt
+cat ip.txt | grep "64 bytes" | cut -d " " -f 4 | tr -d ":"
+
 
 #> Sed
-sed -i.bak 's/t/T/g' text.txt
+sed -i.bak 's/t/T/g' <File_Name> (this will create backup of original file before 'sed'ing it)
+
+
+#> VIM
+ 
+ :66,80s/^/# (comment lines between 66 to 80)
+ :66,80s/^#/ (uncomment lines between 66 to 80)
+ :%s/^/# and :%s/^#/ (comment/uncomment all lines in file)
+ :s/eth0/br0/g (replace current line only)
+ :s/eth0/br0/gc (replace current line with confirmation)
+
+ Toggle the line numbers with :set number! or :set nu!
 
 
 
 
+^_^ youtube-dl examples
+ 
+ - download playlist with best possible video & audio quality
+ youtube-dl --yes-playlist -f bestvideo+bestaudio https://www.youtube.com/playlist?list=PLsxgTjEseLdoATGfsXSnE2fmlHZLcuMSs
 
+ - download only newwer videos in playlist from 
+ youtube-dl --download-archive list.txt "<playlist link>"
+
+ - download m4a audio only
+ youtube-dl --yes-playlist -f 140 https://www.youtube.com/playlist?list=PLsxgTjEseLdqoytyKqcFMDIUx3tBZXagi

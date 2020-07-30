@@ -14,6 +14,7 @@ kubectl version --short
 kubectl cluster-info
 kubectl get nodes
 kubectl -n kube-system get all
+kubectl get all --all-namespaces -o wide (see all the resources in K8)
 
 [root@kmaster /]# kubectl get all         
 NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE

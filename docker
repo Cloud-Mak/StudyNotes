@@ -1,7 +1,36 @@
 
 
-^_^ In detailed - What happens when you launch new container
+^_^ What happens when you launch new container
  
- When you type docker run, the Docker CLI, the client converts then into proper API payloads & POSTS then to corret API ENDpoint.
+ When you type docker run, the Docker CLI client converts then into proper API payloads & POSTS then to corret API ENDpoint.
  API endpoint is implemented into deamon, thus command to create container is reveived by deamon. Deamon then calls containerD (via CRUD-style API over gRPC).
  containerD looks for image locally. If not, then pull request for image is genrated from registry (mostly dockerhub.com) 
+ containerD then presents the imaege as OCI bundles to runC
+ runC inturn talks with OS kernel and pull necessary entities like NS, Cgroup etc to create a continer. The container process is started as a child-process of runc, and as soon as it is started runc will exit.
+ There you go, you got your first container.
+ Having all of the logic and code to start and manage containers removed from the daemon makes it easier for maintenance/upgrades of deamon without affecting running Cs (the entire container runtime is decoupled from the Docker daemon)
+
+
+
+^_^ 12FACTORAPP
+
+ A twelve-factor app should not attempt to write to or manage logfiles. Instead, each running process writes its event stream, unbuffered, to stdout. In development env, you will view this stream in the foreground of their terminal to observe the app’s behavior. In prodcution,  each process’ stream will be captured by the execution environment (e.g. fluentd), collated together with all other streams from the app, and routed to one or more final destinations for viewing and long-term archival.
+
+
+^_^ NETWORK
+
+ USER-DEFINED BRIDGES 
+  provide automatic DNS resolution between containers.
+  User-defined bridges provide better isolation
+  Each user-defined network creates a configurable bridge
+  If different groups of applications have different network requirements, you can configure each user-defined bridge separately, as you create it.
+  Containers can be attached and detached from user-defined networks on the fly
+  Containers connected to the same user-defined bridge network effectively expose all ports to each other
+
+
+ CNM (CONTAINER NETWORK MODEL)
+  libnetwork implements CNM.
+  main components are - Sandbox, endpoints (NICs) & Network
+  
+  
+  

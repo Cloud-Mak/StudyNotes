@@ -31,4 +31,5 @@ clean working tree (CWT) means there is nothing to commit.
 using git stash, you can save local modifications away everts the working directory to match the HEAD commit
 
 -- Remote
-git pull = git fetch + git merge (good practice to use both commands seperately)
+git pull = git fetch + git merge (good practice to use both fetch & merge seperately)
+merge will make your local dir in sync with latest file from other/remote repo
