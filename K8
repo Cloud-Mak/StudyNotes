@@ -91,8 +91,14 @@ vagrant@lxc-host:~/lab/kubernetes/yamls$ kubectl rollout status deployment nginx
 
 vagrant@lxc-host:~/lab/kubernetes/yamls$ kubectl rollout history deployment nginx-deploy
 
+
+
 -- see whats inside each revision in history
 vagrant@lxc-host:~/lab/kubernetes/yamls$ kubectl rollout history deployment nginx-deploy --revision 1
+ -- roll back to a perticular revision dry-run 
+kubectl rollout undo --dry-run deployment rollout-demo --to-revision=3
+
+-- set upgrade from command line using set image
 vagrant@lxc-host:~/lab/kubernetes/yamls$ kubectl set image deployment nginx-deploy nginx=nginx:1.16
 vagrant@lxc-host:~/lab/kubernetes/yamls$ kubectl set image deployment nginx-deploy nginx=nginx:1.17 --record
 
@@ -164,9 +170,148 @@ Switched to context "kubesys".
  {"caller":"arp.go:102","interface":"eth0","ip":"10.70.241.51","msg":"got ARP request for service IP, sending response","responseMAC":"00:16:3e:6a:72:10","senderIP":"10.70.241.1","senderMAC":"fe:42:98:e3:63:99","ts":"2020-07-09T10:59:41.81426133Z"}
 
 
+^_^ Helm
+
+#> metrics server installation using helm 3
+makrand@mint-gl63:/$ helm show values stable/metrics-server > /tmp/metrics-server.values
+makrand@mint-gl63:/$ helm install metrics-server stable/metrics-server --namespace metrics-server --values /tmp/metrics-server.values
+
+
+^_^ Rancher
+#> local deployment 
+sudo docker run -d --restart=unless-stopped -v /opt/rancher:/var/lib/rancher -p 80:80 -p 443:443 rancher/rancher
+
+
+
+
+^_^
+
+ingress controller NS stuck in terminating state
+
+Deleted controller pod in kube-system 
+bounced the kublet on master
+
+https://github.com/kubernetes/kubernetes/issues/19317#issuecomment-574143997
+Ran this sript 
+
+
+#> Horizontal POD autoscaler
+kubectl -n hpa-demo autoscale deployment nginx-scale --min=1 --max=5 --cpu-percent=20
+kubectl -n hpa-demo expose deployment nginx-scale --port 80 --type NodePort
+siege -q -c 5 -t 2m http://<nodeIP>:<port> 
+
+
+
+^_^ Internals Observations
+
+
+#> After running "docker system prune" on worker nodes, found FailedMount & FailedCreatePodSandBox errors for different deployments on cluster. Below is example of argocd app. 
+
+Events:
+  Type     Reason                  Age                    From               Message
+  ----     ------                  ----                   ----               -------
+  Normal   Scheduled               <unknown>              default-scheduler  Successfully assigned argocd/argocd-server-9674dd9f7-7m57m to kworker2
+  Normal   Pulling                 22m                    kubelet, kworker2  Pulling image "argoproj/argocd:v1.6.2"
+  Normal   Pulled                  21m                    kubelet, kworker2  Successfully pulled image "argoproj/argocd:v1.6.2"
+  Normal   Created                 21m                    kubelet, kworker2  Created container argocd-server
+  Normal   Started                 21m                    kubelet, kworker2  Started container argocd-server
+  Warning  FailedMount             6m46s                  kubelet, kworker2  MountVolume.SetUp failed for volume "ssh-known-hosts" : failed to sync configmap cache: timed out waiting for the condition
+  Warning  FailedMount             6m46s                  kubelet, kworker2  MountVolume.SetUp failed for volume "argocd-server-token-5hvc8" : failed to sync secret cache: timed out waiting for the condition
+  Warning  FailedMount             6m46s                  kubelet, kworker2  MountVolume.SetUp failed for volume "tls-certs" : failed to sync configmap cache: timed out waiting for the condition
+  Warning  FailedCreatePodSandBox  6m41s                  kubelet, kworker2  Failed to create pod sandbox: rpc error: code = Unknown desc = failed to set up sandbox container "e91f8f4a8becf279a4f93afe791a5d7e57ea35acf5b8c374ad487a04a4cc5b6a" network for pod "argocd-server-9674dd9f7-7m57m": networkPlugin cni failed to set up pod "argocd-server-9674dd9f7-7m57m_argocd" network: open /run/flannel/subnet.env: no such file or directory
+  Warning  FailedCreatePodSandBox  6m35s                  kubelet, kworker2  Failed to create pod sandbox: rpc error: code = Unknown desc = failed to set up sandbox container "e920c9ad3103288149dbac1bb9671fc4b4bd16bced8cd7929963868391681375" network for pod "argocd-server-9674dd9f7-7m57m": networkPlugin cni failed to set up pod "argocd-server-9674dd9f7-7m57m_argocd" network: open /run/flannel/subnet.env: no such file or directory
+  Normal   SandboxChanged          6m33s (x3 over 6m44s)  kubelet, kworker2  Pod sandbox changed, it will be killed and re-created.
+  Normal   Pulling                 6m32s                  kubelet, kworker2  Pulling image "argoproj/argocd:v1.6.2"
+  Normal   Pulled                  4m53s                  kubelet, kworker2  Successfully pulled image "argoproj/argocd:v1.6.2"
+  Normal   Created                 4m53s                  kubelet, kworker2  Created container argocd-server
+  Normal   Started                 4m53s                  kubelet, kworker2  Started container argocd-server
 
 
 
  
 
+^_^ ISSUES/Problems
 
+#> All PODs in all namaspaces were stuck in ImagePullBackOff at startup. They came back to running state its own in 5 minutes
+
+Normal   SandboxChanged          14m (x2 over 14m)     kubelet, kworker2  Pod sandbox changed, it will be killed and re-created.
+  Normal   Pulling                 13m (x3 over 14m)     kubelet, kworker2  Pulling image "metallb/controller:v0.9.3"
+  Warning  Failed                  13m (x3 over 14m)     kubelet, kworker2  Failed to pull image "metallb/controller:v0.9.3": rpc error: code = Unknown desc = Error response from daemon: Get https://registry-1.docker.io/v2/: dial tcp: lookup registry-1.docker.io on 10.70.241.1:53: server misbehaving
+  Warning  Failed                  13m (x3 over 14m)     kubelet, kworker2  Error: ErrImagePull
+  Warning  Failed                  13m (x5 over 14m)     kubelet, kworker2  Error: ImagePullBackOff
+  Normal   BackOff                 4m25s (x43 over 14m)  kubelet, kworker2  Back-off pulling image "metallb/controller:v0.9.3"
+
+
+#> ArgoCD Errors
+
+rpc error: code = Unavailable desc = all SubConns are in TransientFailure, 
+latest connection error: connection error: desc = "transport: Error while dialing dial tcp 10.98.76.94:8081: connect: connection refused" (ip belongs to repo-server-pod)
+
+
+#> Rancher cattle-server IP change issue
+
+makrand@mint-gl63:~$ kubectl -n cattle-system logs cattle-cluster-agent-5dfcdc9648-fg4ph 
+INFO: Environment: CATTLE_ADDRESS=10.244.0.2 CATTLE_CA_CHECKSUM=d0d29f034badc6e6d5b1cc48a1e9a381f6cab9334fce8a5a3965b50fb928e836 CATTLE_CLUSTER=true CATTLE_FEATURES=dashboard=true CATTLE_INTERNAL_ADDRESS= CATTLE_K8S_MANAGED=true CATTLE_NODE_NAME=cattle-cluster-agent-5dfcdc9648-fg4ph CATTLE_SERVER=https://10.100.100.104
+INFO: Using resolv.conf: nameserver 10.96.0.10 search cattle-system.svc.cluster.local svc.cluster.local cluster.local lxd options ndots:5
+ERROR: https://10.100.100.104/ping is not accessible (Failed to connect to 10.100.100.104 port 443: Connection timed out)
+
+makrand@mint-gl63:~$ kubectl apply -f https://10.20.30.15/v3/import/df8h2jntfcwfdbgvkmjg8dc5fmk895x5x7gnxdcz2db2956f4qlxsq.yaml
+Unable to connect to the server: x509: certificate is valid for 10.100.100.104, 127.0.0.1, 172.17.0.2, not 10.20.30.15
+
+
+#> ArgoCD issue from kibana dashboard logs
+
+kubernetes.namespace_name:argocd log:E0917 10:40:01.401371 1 reflector.go:383] pkg/mod/k8s.io/client-go@v0.18.8/tools/cache/reflector.go:125: Failed to watch *v1alpha1.AppProject: Get "https://10.96.0.1:443/apis/argoproj.io/v1alpha1/namespaces/argocd/appprojects?allowWatchBookmarks=true&resourceVersion=5120929&timeout=5m51s&timeoutSeconds=351&watch=true": dial tcp 10.96.0.1:443: connect: connection refused stream:stderr docker.container_id:993b0ba974b7d387dbc3593e86010b627e355436994ea686ed549054edbe9dd7
+
+-- argo-server logs
+kubernetes.namespace_name:argocd log:E0917 10:40:02.428993 1 reflector.go:383] pkg/mod/k8s.io/client-go@v0.18.8/tools/cache/reflector.go:125: Failed to watch *v1alpha1.AppProject: Get "https://10.96.0.1:443/apis/argoproj.io/v1alpha1/namespaces/argocd/appprojects?allowWatchBookmarks=true&resourceVersion=5120929&timeout=5m54s&timeoutSeconds=354&watch=true": dial tcp 10.96.0.1:443: connect: connection refused stream:stderr docker.container_id:ff58f2c7feed50d098420338a67cda6f1362d637231eb274fe1b80a1755f0491
+
+
+#> Istio on K8 LXD cluster
+
+makrand@mint-gl63:~/lab/istio-1.6.8/bin$ istioctl install --set profile=demo
+Detected that your cluster does not support third party JWT authentication. Falling back to less secure first party JWT. See https://istio.io/docs/ops/best-practices/security/#configure-thir
+d-party-service-account-tokens for details.
+_ Istio core installed
+_ Istiod installed
+_ Egress gateways encountered an error: failed to wait for resource: resources not ready after 5m0s: timed out waiting for the conditiont/istio-system/istio-ingressgateway, Deployment/ist...
+Deployment/istio-system/istio-egressgateway
+_ Ingress gateways encountered an error: failed to wait for resource: resources not ready after 5m0s: timed out waiting for the conditionali, Deployment/istio-system/prometheus
+Deployment/istio-system/istio-ingressgateway
+_ Addons encountered an error: failed to wait for resource: resources not ready after 5m0s: timed out waiting for the condition
+Deployment/istio-system/kiali
+Deployment/istio-system/prometheus
+- Pruning removed resources
+Error: failed to apply manifests: errors occurred during operation
+
+Normal   Scheduled  <unknown>              default-scheduler  Successfully assigned istio-system/istio-ingressgateway-648bd66f75-vjb25 to kworker2
+  Normal   Pulled     7m47s                  kubelet, kworker2  Container image "docker.io/istio/proxyv2:1.6.8" already present on machine
+  Normal   Created    7m47s                  kubelet, kworker2  Created container istio-proxy
+  Normal   Started    7m46s                  kubelet, kworker2  Started container istio-proxy
+  Warning  Unhealthy  7m2s (x22 over 7m44s)  kubelet, kworker2  Readiness probe failed: Get http://10.244.2.237:15021/healthz/ready: dial tcp 10.244.2.237:15021: connect: connection refused
+  Warning  Unhealthy  2m46s (x128 over 7m)   kubelet, kworker2  Readiness probe failed: HTTP probe failed with statuscode: 503
+
+
+  Type     Reason     Age                     From               Message
+  ----     ------     ----                    ----               -------
+  Normal   Scheduled  <unknown>               default-scheduler  Successfully assigned istio-system/istio-egressgateway-659dcf96bb-5qxk7 to kworker2
+  Normal   Pulled     7m5s                    kubelet, kworker2  Container image "docker.io/istio/proxyv2:1.6.8" already present on machine
+  Normal   Created    7m5s                    kubelet, kworker2  Created container istio-proxy
+  Normal   Started    7m4s                    kubelet, kworker2  Started container istio-proxy
+  Warning  Unhealthy  6m20s (x22 over 7m2s)   kubelet, kworker2  Readiness probe failed: Get http://10.244.2.238:15021/healthz/ready: dial tcp 10.244.2.238:15021: connect: connection refused
+  Warning  Unhealthy  2m4s (x128 over 6m18s)  kubelet, kworker2  Readiness probe failed: HTTP probe failed with statuscode: 503
+
+
+2020-09-24T09:50:24.994901Z     info    grpc: addrConn.createTransport failed to connect to {istiod.istio-system.svc:15012  <nil> 0 <nil>}. Err: connection error: desc = "transport: Error w$
+ile dialing dial tcp 10.96.89.136:15012: i/o timeout". Reconnecting...                                                                                                                        
+2020-09-24T09:50:24.994924Z     info    Subchannel Connectivity change to TRANSIENT_FAILURE                                                                                                   
+2020-09-24T09:50:24.994987Z     info    pickfirstBalancer: HandleSubConnStateChange: 0xc00092c860, {TRANSIENT_FAILURE connection error: desc = "transport: Error while dialing dial tcp 10.96$
+89.136:15012: i/o timeout"}                                                                                                                                                                   
+2020-09-24T09:50:24.994996Z     info    Channel Connectivity change to TRANSIENT_FAILURE                                                                                                      
+2020-09-24T09:50:24.995015Z     error   citadelclient   Failed to create certificate: rpc error: code = Unavailable desc = connection error: desc = "transport: Error while dialing dial tcp $
+0.96.89.136:15012: i/o timeout"                                                                                                                                                               
+2020-09-24T09:50:24.995024Z     error   cache   resource:default request:430c0414-737e-440f-b9c1-937c033512e5 CSR retrial timed out: rpc error: code = Unavailable desc = connection error: d$
+sc = "transport: Error while dialing dial tcp 10.96.89.136:15012: i/o timeout"                                                                                                                
+2020-09-24T09:50:24.995039Z     error   cache   resource:default failed to generate secret for proxy: rpc error: code = Unavailable desc = connection error: desc = "transport: Error while d$
+aling dial tcp 10.96.89.136:15012: i/o timeout"                                                                                                                                               
+2020-09-24T09:50:24.995047Z     error   sds     resource:default Close connection. Failed to get secret for proxy "router~10.244.2.241~istio-ingressgateway-648bd66f75-ccmv2.istio-system~ist$o-system.svc.cluster.local" from secret cache: rpc error: code = Unavailable desc = connection error: desc = "transport: Error while dialing dial tcp 10.96.89.136:15012: i/o timeout"

@@ -11,7 +11,6 @@
  Having all of the logic and code to start and manage containers removed from the daemon makes it easier for maintenance/upgrades of deamon without affecting running Cs (the entire container runtime is decoupled from the Docker daemon)
 
 
-
 ^_^ 12FACTORAPP
 
  A twelve-factor app should not attempt to write to or manage logfiles. Instead, each running process writes its event stream, unbuffered, to stdout. In development env, you will view this stream in the foreground of their terminal to observe the app’s behavior. In prodcution,  each process’ stream will be captured by the execution environment (e.g. fluentd), collated together with all other streams from the app, and routed to one or more final destinations for viewing and long-term archival.
@@ -31,6 +30,22 @@
  CNM (CONTAINER NETWORK MODEL)
   libnetwork implements CNM.
   main components are - Sandbox, endpoints (NICs) & Network
+
   
-  
-  
+^_^ Docker internals
+
+ Cgroups are used to put system resources limit on group of processes. While Namespaces are used to limit what group of processes can see ( i.e. isolation)
+ 
+
+^_^ DockerFile
+ Copy vs Add - 
+ Both allows you to copy files/dir into docker image. SRC-Dest needed.
+ Copy works best if you're copying stuff from local machine
+ Add allows to: 1) copy from remote URL 2) extract tar file from the source directly into the destination
+ CMD vs Entrypoint -
+ with CMD one can override command at startup with docker run, while Entrypoint one can't
+ 
+
+
+
+

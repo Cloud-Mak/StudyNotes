@@ -16,10 +16,12 @@ tar -vztf eksctl_Linux_amd64.tar.gz
 # list contents of .tar.bz file
 tar -vbtf eksctl_Linux_amd64.tar.gz
 #extract contents of archieve
-tar -xvzf eksctl_Linux_amd64.tar.gz 
-
+tar -xvzf eksctl_Linux_amd64.tar.g
 
 ^_^ ===========Text Manipulation============
+
+
+
   
 grep 'word1\|word2\|word3' /path/to/file
 ps -ef | grep 'dockerd\|containerd\|runc\|shim'
@@ -32,13 +34,18 @@ cat ip.txt | grep "64 bytes" | cut -d " " -f 4 | tr -d ":"
 sed -i.bak 's/t/T/g' <File_Name> (this will create backup of original file before 'sed'ing it)
 
 
-#> VIM
+#> VIM (source - https://vim.fandom.com/wiki/Category:Searching)
  
  :66,80s/^/# (comment lines between 66 to 80)
  :66,80s/^#/ (uncomment lines between 66 to 80)
  :%s/^/# and :%s/^#/ (comment/uncomment all lines in file)
  :s/eth0/br0/g (replace current line only)
  :s/eth0/br0/gc (replace current line with confirmation)
+ :%s/eth0/br0/gc (replace all eth0 with br0 with confirmation)
+ # shows the number of times (count) that pattern matches text in the current buffer. 
+ :%s/pattern//gn
+ #omit g from above to see nunber of l
+
 
  Toggle the line numbers with :set number! or :set nu!
 
