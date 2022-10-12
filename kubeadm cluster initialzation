@@ -1,4 +1,4 @@
-#setup cluster
+#> setup cluster
 root@demo-mast1:/etc/cni# kubeadm init --control-plane-endpoint="k8demo.dukan.tech:6443" --upload-certs --apiserver-advertise-address=10.20.4.98 --pod-network-cidr=192.168.0.0/16 --node-name=demo-mast1 --v=5
 I1012 11:48:57.293595    4747 initconfiguration.go:117] detected and using CRI socket: /run/containerd/containerd.sock
 I1012 11:48:57.293663    4747 kubelet.go:220] the value of KubeletConfiguration.cgroupDriver is empty; setting it to "systemd"
@@ -183,7 +183,7 @@ Then you can join any number of worker nodes by running the following on each as
 kubeadm join k8demo.dukan.tech:6443 --token o0aznx.jv6s6thay5vvt9q1 \
 	--discovery-token-ca-cert-hash sha256:f602cb904b874d8eea9318196b2c7d7d15074e8e6401024d94ecec0b3458cfb9 
 
-#rest cluster after failed attempt
+#> rest cluster after failed attempt
 dukaan@demo-mast1:~$ sudo kubeadm reset
 [reset] Reading configuration from the cluster...
 [reset] FYI: You can look at this config file with 'kubectl -n kube-system get cm kubeadm-config -o yaml'
