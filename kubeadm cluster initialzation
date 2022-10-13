@@ -241,5 +241,15 @@ serviceaccount/calico-kube-controllers created
 Warning: policy/v1beta1 PodDisruptionBudget is deprecated in v1.21+, unavailable in v1.25+; use policy/v1 PodDisruptionBudget
 poddisruptionbudget.policy/calico-kube-controllers created
 
+#> 
+dukaan@demo-mast1:~$ sudo kubeadm init phase upload-certs --upload-certs
+I1013 06:50:51.499094  464024 version.go:255] remote version is much newer: v1.25.2; falling back to: stable-1.23
+[upload-certs] Storing the certificates in Secret "kubeadm-certs" in the "kube-system" Namespace
+[upload-certs] Using certificate key:
+dfc30bcd0c6e55a657d6b7640e86e4ef79ef945bc6e3bcef8bff92ae8127a72e
+
+dukaan@demo-mast1:~$ kubeadm token create --certificate-key dfc30bcd0c6e55a657d6b7640e86e4ef79ef945bc6e3bcef8bff92ae8127a72e --ttl 0 --print-join-command
+kubeadm join k8demo.dukan.tech:6443 --token jxspm9.cj24pj5foh9x4sl0 --discovery-token-ca-cert-hash sha256:f602cb904b874d8eea9318196b2c7d7d15074e8e6401024d94ecec0b3458cfb9 --control-plane --certificate-key dfc30bcd0c6e55a657d6b7640e86e4ef79ef945bc6e3bcef8bff92ae8127a72e
+
 
 
